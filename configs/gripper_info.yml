@@ -1,0 +1,17 @@
+2f_64:
+  name : "2f_64"
+  img_size: 64
+  width_base : 45
+  min_width : 9
+  max_width : 49
+  gripper_rect : [[15, 0, 4, 6, 0], [-15, 0, 4, 6, 0]]
+  base : [0, 0, 50, 40, 0]
+
+2f_224:
+  name : "2f_224"
+  img_size: 224
+  width_base : 45
+  min_width : 9
+  max_width : 49
+  gripper_rect : [[52.5, 0, 14, 21, 0], [-52.5, 0, 14, 21, 0]]
+  base : [0, 0, 50, 40, 0]

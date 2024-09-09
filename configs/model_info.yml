@@ -1,0 +1,16 @@
+# GAdaNext_64:
+#   ModelName : "GAdaNext"
+#   ModelDetail:
+#     input-size : 64
+#     use-dropout : 0         # Use dropout for training (1/0)
+#     dropout-prob : 0.1      # Dropout prob for training (0-1)
+#     channel-size : 32       # Internal channel size for the network
+#     iou-threshold : 0.25    # Threshold for IOU matching
+
+
+GAdaNext:
+  ModelName : "GAdaNext"
+  use_dropout : 0         # Use dropout for training (1/0)
+  dropout_prob : 0.1      # Dropout prob for training (0-1)
+  channel_size : 32       # Internal channel size for the network
+  iou_threshold : 0.25    # Threshold for IOU matching

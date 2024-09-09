@@ -1,0 +1,58 @@
+TestName :
+  gripper_2f_224 :
+    # Dataset
+    dataset : 'genjacquard'
+    input_size : 224
+    dataset_path : '/mnt/sdb/yeonseo/Robot_Grasping/Dataset/Custom_Dataset/dataset_2f_224_w-2_theta-1/crop_dataset'
+    split : 0.9
+    ds_shuffle : False
+    ds_rotate : 0.0
+    num_workers : 8
+    use_depth : 1           # Use Depth image for training (1/0)
+    use_rgb : 0             # Use RGB image for training (1/0)
+
+    # Gripper Infromation
+    gripper_type : '2f_224'
+    min_width : 9
+    max_width : 49
+
+    # Training
+    Model : 'GAdaNext'
+    force_cpu : 0
+    batch_size : 1
+    epochs : 200
+    batches_per_epoch : 200
+    optim : 'adam'
+    n_train_samples : 25
+
+    # Etc
+    eval_freq : 1
+  
+  gripper_2f_64 :
+    # Dataset
+    dataset : 'genjacquard'
+    input_size : 64
+    dataset_path : '/mnt/sdb/yeonseo/Robot_Grasping/Dataset/Custom_Dataset/dataset_2f_64_w-2_theta-1/crop_dataset'
+    split : 0.9
+    ds_shuffle : False
+    ds_rotate : 0.0
+    num_workers : 8
+    use_depth : 1           # Use Depth image for training (1/0)
+    use_rgb : 0             # Use RGB image for training (1/0)
+
+    # Gripper Infromation
+    gripper_type : '2f_64'
+    min_width : 9
+    max_width : 49
+
+    # Training
+    Model : 'GAdaNext'
+    force_cpu : 0
+    batch_size : 1
+    epochs : 200
+    batches_per_epoch : 200
+    optim : 'adam'
+    n_train_samples : 25
+
+    # Etc
+    eval_freq : 1

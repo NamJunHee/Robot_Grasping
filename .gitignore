@@ -1,0 +1,8 @@
+__pycache__/
+gripper_labeling/__pycache__/
+gripper_labeling/gripper_masks/
+logs/
+models/__pycache__/
+utils/__pycache__/
+
+
