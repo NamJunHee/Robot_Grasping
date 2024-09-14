@@ -28,11 +28,11 @@ TestName :
     # Etc
     eval_freq : 1
   
-  gripper_2f_64 :
+  gripper_2f_64_prev :
     # Dataset
     dataset : 'genjacquard'
     input_size : 64
-    dataset_path : '/mnt/sdb/yeonseo/Robot_Grasping/Dataset/Custom_Dataset/dataset_2f_64_w-2_theta-1/crop_dataset'
+    dataset_path : '/mnt/sdb/yeonseo/Robot_Grasping/Dataset/Custom_Dataset/dataset_2f_v3/cropdataset'
     split : 0.9
     ds_shuffle : False
     ds_rotate : 0.0

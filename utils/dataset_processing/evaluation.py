@@ -435,6 +435,63 @@ def check_grasp_d(data_input, img_size, action, gripper,cnt,epoch):
 
     return  done, g_pass, r_pass, reward 
 
+
+
+def visualize_grasp_result(data_input, action, depth_state, close_g, img_size, save_path="grasp_result.png"):
+    """
+    주어진 데이터를 바탕으로 그리퍼의 상태를 시각화하고 이미지를 저장합니다.
+    
+    :param data_input: 입력 이미지 데이터 (예: 씬 데이터)
+    :param action: 그리퍼의 회전 각도 및 너비 정보 [각도, 너비]
+    :param depth_state: 깊이 상태 정보 (이미지 형태)
+    :param close_g: 그리퍼가 닫히는 상태 정보 (바이너리 마스크 형태)
+    :param img_size: 입력 이미지 크기 (예: 224, 320 등)
+    :param save_path: 저장할 이미지 경로
+    """
+    # 입력 데이터를 시각화 가능한 형태로 변환 (예: 첫 번째 채널 사용)
+    img = np.zeros((img_size, img_size, 3), dtype=np.uint8)
+    img[:, :, 0] = np.uint8(data_input[:, :, 0] * 255)  # 첫 번째 채널을 사용하여 시각화
+
+    # Matplotlib을 이용해 그리퍼 상태 그리기
+    plt.figure(figsize=(6, 6))
+    plt.imshow(img, cmap="gray", vmin=0, vmax=255)
+
+    # 그리퍼의 중심 및 그립 상태 그리기
+    center = (img_size // 2, img_size // 2)
+    plt.scatter(center[0], center[1], s=100, c='red', label='Gripper Center')
+
+    # 그리퍼의 각도 및 너비를 기반으로 선 그리기
+    angle = action[0] * np.pi / 180  # 각도를 라디안으로 변환
+    width = action[1]
+
+    # 그리퍼의 선 그리기
+    x1 = center[0] + int(width * np.cos(angle))
+    y1 = center[1] + int(width * np.sin(angle))
+    x2 = center[0] - int(width * np.cos(angle))
+    y2 = center[1] - int(width * np.sin(angle))
+    
+    plt.plot([x1, x2], [y1, y2], 'b-', lw=3, label='Gripper')
+
+    # 그리퍼가 닫히는 상태 시각화 (바이너리 마스크)
+    close_mask = close_g.astype(np.uint8) * 255
+    plt.imshow(close_mask, cmap='Blues', alpha=0.5, label='Close Gripper Mask')
+
+    # 깊이 정보 시각화
+    depth_state_visual = np.uint8(depth_state * 255)
+    plt.imshow(depth_state_visual, cmap='Reds', alpha=0.3, label='Depth State')
+
+    # 그리퍼 각도 및 너비 정보 출력
+    plt.title(f"Gripper Angle: {action[0]}°, Width: {action[1]}")
+
+    plt.legend()
+    plt.axis('off')
+
+    # 이미지를 저장
+    plt.savefig(save_path)
+    plt.close()
+    print(f"결과 이미지가 {save_path}에 저장되었습니다.")
+    
+    
 def check_grasp_v2(data_input, img_size, action_input, gripper,cnt,epoch, filter_ratio=0.2):
 
     # different filter ratio

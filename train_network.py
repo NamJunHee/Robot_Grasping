@@ -23,7 +23,7 @@ from utils.dataset_processing import evaluation
 
 
 
-def validate(net, device, val_data, iou_threshold, epoch, gripper, img_size):
+def validate(net, device, val_data, iou_threshold, epoch, gripper, img_size, valid_path):
     """
     Run validation.
     :param net: Network
@@ -112,6 +112,18 @@ def validate(net, device, val_data, iou_threshold, epoch, gripper, img_size):
             else:
                 results['failed'] += 1
 
+            # --- 시각화 추가 ---
+            # check_grasp_v2의 결과를 시각화하고 저장
+            save_path = f"{valid_path}/epoch_{epoch}_batch_{batch_cnt}.png"
+            evaluation.visualize_grasp_result(
+                scene_data_cp, action_cp, depth_state=np.random.rand(img_size, img_size),  # 예시 depth_state
+                close_g=np.random.rand(img_size, img_size),  # 예시 close_g
+                img_size=img_size,
+                save_path=save_path
+            )
+            print(f"Batch {batch_cnt}의 시각화 결과가 {save_path}에 저장되었습니다.")
+            # --- 시각화 끝 ---
+            
             s = False
             cnt += 1
             batch_cnt += 1
@@ -186,15 +198,20 @@ def run():
     
     #==== get test_name ====#
     test_name = args.test_name
-
+    
     #==== load test_name's configs ====#
-    log_path = args.log_location + test_name
+    current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_path = args.log_location + test_name + "_" + current_time
     if not os.path.exists(log_path):
         os.makedirs(log_path)
 
     weight_path = log_path + "/weights"
     if not os.path.exists(weight_path):
         os.makedirs(weight_path)
+        
+    valid_path = log_path + "/valid"
+    if not os.path.exists(valid_path):
+        os.makedirs(valid_path)
     
     
     with open(log_path + "/args.txt", "w") as f:
@@ -355,7 +372,7 @@ def run():
         
         if (epoch % configs['eval_freq'] == 0) or (epoch == configs['epochs'] - 1):
             logging.info('Validating...')
-            test_results = validate(net, device, val_data, model_cfg['iou_threshold'], epoch, gripper, configs['input_size'])
+            test_results = validate(net, device, val_data, model_cfg['iou_threshold'], epoch, gripper, configs['input_size'], valid_path)
             logging.info('%d/%d = %f' % (test_results['correct'], test_results['correct'] + test_results['failed'],
                                         test_results['correct'] / (test_results['correct'] + test_results['failed'])))
 
