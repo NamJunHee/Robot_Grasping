@@ -450,7 +450,18 @@ def visualize_grasp_result(data_input, action, depth_state, close_g, img_size, s
     """
     # 입력 데이터를 시각화 가능한 형태로 변환 (예: 첫 번째 채널 사용)
     img = np.zeros((img_size, img_size, 3), dtype=np.uint8)
-    img[:, :, 0] = np.uint8(data_input[:, :, 0] * 255)  # 첫 번째 채널을 사용하여 시각화
+
+
+
+    # print('data_input shape', data_input.shape)
+    # print('.', type(data_input))
+    data_input = data_input.transpose(1,2,0)
+
+    # print('data_input',data_input)
+
+    img[:, :, :] = np.uint8(data_input[:, :, 1:4]*255 )  # 첫 번째 채널을 사용하여 시각화
+
+
 
     # Matplotlib을 이용해 그리퍼 상태 그리기
     plt.figure(figsize=(6, 6))
@@ -489,7 +500,7 @@ def visualize_grasp_result(data_input, action, depth_state, close_g, img_size, s
     # 이미지를 저장
     plt.savefig(save_path)
     plt.close()
-    print(f"결과 이미지가 {save_path}에 저장되었습니다.")
+    # print(f"결과 이미지가 {save_path}에 저장되었습니다.")
     
     
 def check_grasp_v2(data_input, img_size, action_input, gripper,cnt,epoch, filter_ratio=0.2):
@@ -525,6 +536,7 @@ def check_grasp_v2(data_input, img_size, action_input, gripper,cnt,epoch, filter
     # action[1] = round_to_odd(np.clip( (float(action[1])*39) +8, 9,47),even=False)
     action[0] = round_to_m5(((float(action[0])*361)-1),multiple=5)
     action[1] = round_to_odd(((float(action[1])*39) +8),even=False)
+    # action[1] = round_to_odd(((float(action[1])*) +30),even=False)
     # print('action after', action)
     #action
     grip.rotate(action[0])
@@ -543,10 +555,11 @@ def check_grasp_v2(data_input, img_size, action_input, gripper,cnt,epoch, filter
     data_input = np.transpose(data_input,(1,2,0))
     # print(44, data_input.shape)
     data_cp = data_input.copy()
-    depth_img = data_input[:,:,4]
+    depth_img = data_input[:,:,0]
 
-    #print('datainput 3',data_cp[:,:,3])
-    #print('datainput 4',data_cp[:,:,4])
+    
+    # print('datainput 3',data_cp[:,:,3])
+    # print('datainput 4',data_cp[:,:,4])
 
 
 

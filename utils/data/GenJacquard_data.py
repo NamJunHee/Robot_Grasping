@@ -33,7 +33,7 @@ class GenJacquardDataset(GraspDatasetBase):
         self.img_size = img_size
         self.grasp_files = glob.glob(os.path.join(file_path, '*', '*_label.txt'))
         # for test
-        self.grasp_files = [f for f in self.grasp_files if 1 <= int(os.path.basename(os.path.dirname(f))) <= 300]
+        # self.grasp_files = [f for f in self.grasp_files if 1 <= int(os.path.basename(os.path.dirname(f))) <= 300]
         self.grasp_files.sort()
         
 

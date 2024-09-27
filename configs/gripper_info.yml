@@ -15,3 +15,23 @@
   max_width : 49
   gripper_rect : [[52.5, 0, 14, 21, 0], [-52.5, 0, 14, 21, 0]]
   base : [0, 0, 50, 40, 0]
+
+
+3f_64:
+  name : "3f_64"
+  img_size: 64
+  width_base : 45
+  min_width : 9
+  max_width : 49
+  gripper_rect : [[15, 0, 4, 6, 0], [-15, 10, 4, 6, 0], [-15, -10, 4, 6, 0]]
+  base : [0, 0, 50, 40, 0]
+
+
+3f_224:
+  name : "3f_224"
+  img_size: 224
+  width_base : 157
+  min_width : 31.5
+  max_width : 171.5
+  gripper_rect : [[52.5, 0, 14, 21, 0], [-52.5, 35, 14, 21, 0], [-52.5, -35, 14, 21, 0]]
+  base : [0, 0, 175, 140, 0]

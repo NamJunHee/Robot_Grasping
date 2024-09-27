@@ -112,7 +112,7 @@ def step(input_data, action, gripper, deep):
         r_pass : bool, No collision occurred : True
     '''
     
-    min_w = 16
+    min_w = 31
     reward = 0
     deep_rate = deep
     
@@ -195,7 +195,7 @@ def step(input_data, action, gripper, deep):
     close_crop = np.zeros([gripper_info['img_size'],gripper_info['img_size']], dtype=np.uint8)
     close_state = np.zeros([gripper_info['img_size'],gripper_info['img_size']], dtype=np.uint8)
 
-    while grip.base_width >= min_w - 10:
+    while grip.base_width >= min_w - 25:
         grip.change_width_dw(-5)
         contours_c = grip.get_contours()
         cv2.drawContours(close_crop, contours_c, -1, highest+ gripper_depth, -1)
@@ -264,41 +264,25 @@ def step(input_data, action, gripper, deep):
                     grip_centroid_dist + action[3]*para_weight[3]
 
 
-    rows = 1
-    cols = 1
-    fontsize = 20
-
-    fig_1 = plt.figure(figsize=(10, 8), dpi = 100)
-
-    ax1 = fig_1.add_subplot(rows,cols,1)
-    # ax1.imshow(input_data[1])
-    ax1.imshow(observation )
-    ax1.set_title(action[2],fontsize=fontsize)
-
-    plt.show()
-    plt.close(fig_1)
-
-
-
     # 잡힘 완료 기준 에 대한 여려 변형들 
     # if (outside_val < 0.0001) and (open_collision < 0.0001) and (close_max > 0.01):
     # if g_pass==True and r_pass == True and reward > 20 :# big size gripper
     if g_pass==True and r_pass == True and t_pass == True:  #small size gripper  
         done = True
 
-        rows = 1
-        cols = 1
-        fontsize = 20
+        # rows = 1
+        # cols = 1
+        # fontsize = 20
 
-        fig_1 = plt.figure(figsize=(10, 8), dpi = 100)
+        # fig_1 = plt.figure(figsize=(10, 8), dpi = 100)
 
-        ax1 = fig_1.add_subplot(rows,cols,1)
-        # ax1.imshow(input_data[1])
-        ax1.imshow(observation )
-        ax1.set_title(action[2],fontsize=fontsize)
+        # ax1 = fig_1.add_subplot(rows,cols,1)
+        # # ax1.imshow(input_data[1])
+        # ax1.imshow(observation )
+        # ax1.set_title(action[2],fontsize=fontsize)
 
-        plt.show()
-        plt.close(fig_1)
+        # plt.show()
+        # plt.close(fig_1)
 
             
     return reward_sum , g_pass , r_pass , done ,center_weight
@@ -466,10 +450,22 @@ def task(
 
 
     # Save crop image
-    depth_result = input_data[1]
     img_save = crop_data_path+'/'+str(num)+'_crop'+'_RGB.png'
     img_frame = input_data[0]
     cv2.imwrite(img_save, img_frame)
+
+    # float16 변환 버전 
+    # depth_result = input_data[1].astype(np.uint8)
+
+    # uint8 변환 버번 
+
+    min_val = input_data[1].min()
+    max_val = input_data[1].max()
+
+    depth_result_normalized = (input_data[1] - min_val)/ (max_val - min_val) 
+
+    depth_result = (depth_result_normalized *255).astype(np.uint8)
+
 
     depth_save = crop_data_path+'/'+str(num)+'_crop'+'_depth.npy'
     np.save(depth_save,depth_result)
@@ -496,13 +492,14 @@ def main():
             gripper_info['gripper_rect'], 
             gripper_info['base'])
     
-    w_resolution = 2
-    theta_resolution = 1    
+    w_resolution = 5
+    theta_resolution = 5
+    
     
     ##== Make action_list (action candidate)
     x_action = [0]
     y_action = [0]
-    w_action = list(range(9,39,w_resolution))
+    w_action = list(range(31,171,w_resolution))
     theta_action = list(range(0,360,theta_resolution))
 
     action_list=list(product(x_action,y_action,theta_action, w_action))

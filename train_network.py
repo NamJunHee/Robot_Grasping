@@ -114,14 +114,15 @@ def validate(net, device, val_data, iou_threshold, epoch, gripper, img_size, val
 
             # --- 시각화 추가 ---
             # check_grasp_v2의 결과를 시각화하고 저장
-            save_path = f"{valid_path}/epoch_{epoch}_batch_{batch_cnt}.png"
-            evaluation.visualize_grasp_result(
-                scene_data_cp, action_cp, depth_state=np.random.rand(img_size, img_size),  # 예시 depth_state
-                close_g=np.random.rand(img_size, img_size),  # 예시 close_g
-                img_size=img_size,
-                save_path=save_path
-            )
-            print(f"Batch {batch_cnt}의 시각화 결과가 {save_path}에 저장되었습니다.")
+            # save_path = f"{valid_path}/epoch_{epoch}_batch_{batch_cnt}.png"
+            # # print('save_path', save_path)
+            # evaluation.visualize_grasp_result(
+            #     scene_data_cp, action_cp, depth_state=np.random.rand(img_size, img_size),  # 예시 depth_state
+            #     close_g=np.random.rand(img_size, img_size),  # 예시 close_g
+            #     img_size=img_size,
+            #     save_path=save_path
+            # )
+            # print(f"Batch {batch_cnt}의 시각화 결과가 {save_path}에 저장되었습니다.")
             # --- 시각화 끝 ---
             
             s = False
@@ -166,7 +167,18 @@ def train(epoch, net, device, train_data, optimizer, scheduler):
         out_pred = net(scene_inp, gripper_inp)
         batch_size = out_pred.shape[0]
         out_pred, labels, weights = out_pred.flatten(), labels.flatten(), weights.flatten()
+
+        # print('out_pred shape', out_pred.shape)
+        # print('out_pred', out_pred)
+        # print('labels shape', labels.shape)
+        # print('labels', labels)
+
+
         loss = F.binary_cross_entropy_with_logits(out_pred, labels, weight=weights, reduction='sum') / batch_size
+
+        # print('loss', loss)
+
+
         
         losses = {"out_loss": loss}  # Store loss
         
@@ -264,7 +276,7 @@ def run():
     #==== Load Dataset ====#
     logging.info('Loading {} Dataset...'.format(configs['dataset'].title()))
     Dataset = get_dataset(configs['dataset'])
-    
+    print(22,configs['dataset_path'])
     dataset = Dataset(configs['dataset_path'],
                       img_size=configs['input_size'],
                       ds_rotate=configs['ds_rotate'],
@@ -347,7 +359,7 @@ def run():
     lr_param = 2e-4
     if configs['optim'].lower() == 'adam':
         optimizer = optim.AdamW(net.parameters(), lr=lr_param, betas=(0.9, 0.999), weight_decay=0.01)
-        optimizer = optim.SGD(net.parameters(), lr=lr_param, momentum=0.9)
+        # optimizer = optim.SGD(net.parameters(), lr=lr_param, momentum=0.9)
     else:
         raise NotImplementedError('Optimizer {} is not implemented'.format(args.optim))
 
