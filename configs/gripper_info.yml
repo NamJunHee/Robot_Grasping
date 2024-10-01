@@ -3,7 +3,7 @@
   img_size: 64
   width_base : 45
   min_width : 9
-  max_width : 49
+  max_width : 45
   gripper_rect : [[15, 0, 4, 6, 0], [-15, 0, 4, 6, 0]]
   base : [0, 0, 50, 40, 0]
 
@@ -12,9 +12,9 @@
   img_size: 224
   width_base : 45
   min_width : 9
-  max_width : 49
+  max_width : 45
   gripper_rect : [[52.5, 0, 14, 21, 0], [-52.5, 0, 14, 21, 0]]
-  base : [0, 0, 50, 40, 0]
+  base : [0, 0, 175, 140, 0]
 
 
 3f_64:

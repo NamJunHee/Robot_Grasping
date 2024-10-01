@@ -21,7 +21,7 @@ class GenJacquardDataset(GraspDatasetBase):
     Dataset wrapper for the Jacquard dataset.
     """
 
-    def __init__(self, file_path, img_size, ds_rotate=0, min_width=12, max_width=60, training=True, n_train_samples=25,
+    def __init__(self, file_path, img_size, angle_step, width_step, ds_rotate=0, min_width=12, max_width=60, training=True, n_train_samples=25,
                  **kwargs):
         """
         :param file_path: Jacquard Dataset directory.
@@ -29,11 +29,10 @@ class GenJacquardDataset(GraspDatasetBase):
         :param kwargs: kwargs for GraspDatasetBase
         """
         super(GenJacquardDataset, self).__init__(**kwargs)
-        
         self.img_size = img_size
         self.grasp_files = glob.glob(os.path.join(file_path, '*', '*_label.txt'))
         # for test
-        # self.grasp_files = [f for f in self.grasp_files if 1 <= int(os.path.basename(os.path.dirname(f))) <= 300]
+        self.grasp_files = [f for f in self.grasp_files if 1 <= int(os.path.basename(os.path.dirname(f))) <= 300]
         self.grasp_files.sort()
         
 
@@ -57,24 +56,45 @@ class GenJacquardDataset(GraspDatasetBase):
         self.training = training
         self.n_train_samples = n_train_samples
 
-        self.min_w, self.max_w = (min_width - 8)/39., (max_width - 8)/39.
-        self.min_a, self.max_a = 1/361., 1.
-        self.step_w, self.step_a = (2/39., 5/361.) # if self.training else (2/39., 5/361.)
-        self.arr_w = np.arange(self.min_w + self.step_w / 2, self.max_w, self.step_w)
-        self.arr_a = np.arange(self.min_a + self.step_a / 2, self.max_a, self.step_a)
-        self.grid_a, self.grid_w = np.meshgrid(self.arr_a, self.arr_w) # create a grid search space for width and angle
+        # self.min_w, self.max_w = (min_width - 8)/39., (max_width - 8)/39.
+        # self.min_a, self.max_a = 1/361., 1.
+        # self.step_w, self.step_a = (2/39., 5/361.) # if self.training else (2/39., 5/361.)
+        # self.arr_w = np.arange(self.min_w + self.step_w / 2, self.max_w, self.step_w)
+        # print("self.arr_w : ", self.arr_w, len(self.arr_w))
+        # self.arr_a = np.arange(self.min_a + self.step_a / 2, self.max_a, self.step_a)
+        # print("self.arr_a : ", self.arr_w)
+        # self.grid_a, self.grid_w = np.meshgrid(self.arr_a, self.arr_w) # create a grid search space for width and angle
+        # print("self.grid_a : ", self.grid_a)
+        # # create a gripper mask for each pair (width, angle) : coarse-to-fine prediction
+        # self.gripper_masks = np.zeros((len(self.arr_w), len(self.arr_a), self.img_size, self.img_size))
+        # for idw in range(len(self.arr_w)):
+        #     for ida in range(len(self.arr_a)):
+        #         self.gripper_masks[idw, ida] = self.get_gripper_mask(width=self.arr_w[idw] * 39 + 8, angle=self.arr_a[ida] * 361 - 1)
 
-        # create a gripper mask for each pair (width, angle)
-        self.gripper_masks = np.zeros((len(self.arr_w), len(self.arr_a), self.img_size, self.img_size))
-        for idw in range(len(self.arr_w)):
-            for ida in range(len(self.arr_a)):
-                self.gripper_masks[idw, ida] = self.get_gripper_mask(width=self.arr_w[idw] * 39 + 8, angle=self.arr_a[ida] * 361 - 1)
+        
+        ## 
+        self.min_w, self.max_w = min_width, max_width
+        self.min_a, self.max_a = 0, 360
+        self.angle_step, self.width_step = angle_step, width_step
+        self.width_list = np.arange(self.min_w, self.max_w+1, self.width_step)
+        self.angle_list = np.arange(0, 360, self.angle_step)
+        # normalize
+        self.normalized_width_list = (self.width_list - self.min_w) / (self.max_w - self.min_w)
+        self.normalized_angle_list = self.angle_list / 360.0
+        self.grid_angle, self.grid_width = np.meshgrid(self.normalized_angle_list, self.normalized_width_list)
+        # create a gripper mask for each pair (width, angle) : coarse-to-fine prediction
+        self.gripper_masks = np.zeros((len(self.normalized_width_list), len(self.normalized_angle_list), self.img_size, self.img_size))
+        for idw in range(len(self.width_list)):
+            for ida in range(len(self.angle_list)):
+                self.gripper_masks[idw, ida] = self.get_gripper_mask(width=self.width_list[idw], angle=self.angle_list[ida])
+
 
     def get_gripper_mask(self, width, angle):
+        # print(" width, angle : ",  width, angle)
         gripper_mask = np.zeros((self.img_size, self.img_size))
-        grip = Gripper([32, 32], 0, self.gripper[0], self.gripper[1], self.gripper[2], (self.img_size, self.img_size))
+        grip = Gripper([self.img_size//2, self.img_size//2], 0, self.gripper[0], self.gripper[1], self.gripper[2], (self.img_size, self.img_size))
         grip.change_width(width)
-        grip.rotate(angle)
+        grip.rotate(int(angle))
         contours = grip.get_contours()
         cv2.drawContours(gripper_mask, contours, -1, 1, -1)
         return gripper_mask
@@ -144,7 +164,7 @@ class GenJacquardDataset(GraspDatasetBase):
         # Load the grasps
         bbs = self.get_gtbb(idx, rot, zoom_factor, normalize=True)
 
-        grip = Gripper([self.img_size/2, self.img_size/2], 0, self.gripper[0], self.gripper[1], self.gripper[2], (self.img_size, self.img_size))
+        grip = Gripper([self.img_size//2, self.img_size//2], 0, self.gripper[0], self.gripper[1], self.gripper[2], (self.img_size, self.img_size))
         depth_state = np.clip((depth_img - depth_img.mean()) * 5 + 0.5, 0, 1)
         depth_state = np.uint8(depth_state * 255)
         grasp_base = np.zeros([self.img_size, self.img_size], dtype=np.uint8)
@@ -168,19 +188,23 @@ class GenJacquardDataset(GraspDatasetBase):
         returned_data["scene_inputs"] = scene_inputs.astype(np.float32)
 
         if self.training:
-            nw, na = len(self.arr_w), len(self.arr_a)
+            nw, na = len(self.normalized_width_list), len(self.normalized_angle_list)
             pos_mask = np.zeros((nw, na), dtype=np.bool)
 
             gt_a, gt_w, gt_q = bbs[:, 0], bbs[:, 1], bbs[:, 2]
-            mask_gt_a = (gt_a >= self.min_a) & (gt_a <= self.max_a)
-            mask_gt_w = (gt_w >= self.min_w) & (gt_w <= self.max_w)
+            mask_gt_a = (gt_a >= self.normalized_angle_list[0]) & (gt_a <= self.normalized_angle_list[-1])
+            mask_gt_w = (gt_w >= self.normalized_width_list[0]) & (gt_w <= self.normalized_width_list[-1])
             mask_gt = mask_gt_a & mask_gt_w
             gt_a, gt_w, gt_q = gt_a[mask_gt], gt_w[mask_gt], gt_q[mask_gt]
+            #print("gt_a, gt_w, gt_q : ", gt_a, gt_w, gt_q)
 
             n_pos_samples = len(gt_a)
             if n_pos_samples > 0:
-                gt_id_a = ((gt_a - self.min_a) / self.step_a).astype(np.uint8)
-                gt_id_w = ((gt_w - self.min_w) / self.step_w).astype(np.uint8)
+                gt_a_in_degrees = gt_a * 360.0  # 각도는 0~360도로 변환
+                gt_w_in_units = gt_w * (self.max_w - self.min_w) + self.min_w  # 폭은 원래의 단위로 변환
+
+                gt_id_a = ((gt_a_in_degrees - self.min_a) / self.angle_step).astype(np.uint8)
+                gt_id_w = ((gt_w_in_units - self.min_w) / self.width_step).astype(np.uint8)
                 _, unq_index = np.unique(np.stack((gt_id_a, gt_id_w), axis=1), return_index=True, axis=0)
                 n_pos_samples = len(unq_index)
 
@@ -211,8 +235,8 @@ class GenJacquardDataset(GraspDatasetBase):
         # print(gripper_inputs.shape, labels.shape, weights.shape)
         returned_data.update({"gripper_inputs": gripper_inputs.astype(np.float32),
                               "gt_grasps": bbs.astype(np.float32),
-                              "grid_w": self.grid_w.astype(np.float32),
-                              "grid_a": self.grid_a.astype(np.float32),
+                              "grid_w": self.grid_width.astype(np.float32),
+                              "grid_a": self.grid_angle.astype(np.float32),
                               "object_mask": np.stack((state, depth_img), axis=0).astype(np.float32)})
 
         return returned_data

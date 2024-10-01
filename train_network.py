@@ -276,7 +276,8 @@ def run():
     #==== Load Dataset ====#
     logging.info('Loading {} Dataset...'.format(configs['dataset'].title()))
     Dataset = get_dataset(configs['dataset'])
-    print(22,configs['dataset_path'])
+    print(configs['dataset_path'])
+    
     dataset = Dataset(configs['dataset_path'],
                       img_size=configs['input_size'],
                       ds_rotate=configs['ds_rotate'],
@@ -286,6 +287,8 @@ def run():
                       include_rgb=configs['use_rgb'],
                       binary_input=True,
                       gripper=gripper,
+                      angle_step=configs['angle_step'],
+                      width_step=configs['width_step'],
                       min_width=gripper_cfg['min_width'], max_width=gripper_cfg['max_width'], n_train_samples=configs['n_train_samples'])
     logging.info('Dataset size is {}'.format(dataset.length))
     
@@ -314,16 +317,18 @@ def run():
     )
     
     val_dataset = Dataset(configs['dataset_path'],
-                      img_size=configs['input_size'],
-                      ds_rotate=configs['ds_rotate'],
-                      random_rotate=True,
-                      random_zoom=True,
-                      include_depth=configs['use_depth'],
-                      include_rgb=configs['use_rgb'],
-                      binary_input=True,
-                          training=False,
-                      gripper=gripper,
-                          min_width=gripper_cfg['min_width'], max_width=gripper_cfg['max_width'])
+                        img_size=configs['input_size'],
+                        ds_rotate=configs['ds_rotate'],
+                        random_rotate=True,
+                        random_zoom=True,
+                        include_depth=configs['use_depth'],
+                        include_rgb=configs['use_rgb'],
+                        binary_input=True,
+                        training=False,
+                        gripper=gripper,
+                        angle_step=configs['angle_step'],
+                        width_step=configs['width_step'],
+                        min_width=gripper_cfg['min_width'], max_width=gripper_cfg['max_width'])
     val_data = torch.utils.data.DataLoader(
         val_dataset,
         batch_size=1,
