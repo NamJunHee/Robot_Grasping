@@ -503,7 +503,7 @@ def visualize_grasp_result(data_input, action, depth_state, close_g, img_size, s
     # print(f"결과 이미지가 {save_path}에 저장되었습니다.")
     
     
-def check_grasp_v2(data_input, img_size, action_input, gripper,cnt,epoch, filter_ratio=0.2):
+def check_grasp_v2(data_input, img_size, action_input, gripper, g_width_range, cnt,epoch, filter_ratio=0.2):
 
     # different filter ratio
 
@@ -534,11 +534,15 @@ def check_grasp_v2(data_input, img_size, action_input, gripper,cnt,epoch, filter
     
     # action[0] = round_to_m5(np.clip( (float(action[0])*361)-1,0,360),multiple=5)
     # action[1] = round_to_odd(np.clip( (float(action[1])*39) +8, 9,47),even=False)
-    action[0] = round_to_m5(((float(action[0])*361)-1),multiple=5)
-    action[1] = round_to_odd(((float(action[1])*39) +8),even=False)
+    # action[0] = round_to_m5(((float(action[0])*361)-1),multiple=5)
+    # action[1] = round_to_odd(((float(action[1])*39) +8),even=False)
     # action[1] = round_to_odd(((float(action[1])*) +30),even=False)
     # print('action after', action)
     #action
+
+    action[0] = action[0]*360
+    action[1] = (action[1] * (g_width_range[1] - g_width_range[0])) + g_width_range[0]
+    #print("angle : ", action[0], "  width : ", action[1], g_width_range)
     grip.rotate(action[0])
     grip.change_width(action[1])
 
@@ -560,8 +564,7 @@ def check_grasp_v2(data_input, img_size, action_input, gripper,cnt,epoch, filter
     
     # print('datainput 3',data_cp[:,:,3])
     # print('datainput 4',data_cp[:,:,4])
-
-
+    
 
 
     # depth_input = np.squeeze(data_input[:,:,0], axis=2)
@@ -745,6 +748,34 @@ def check_grasp_v2(data_input, img_size, action_input, gripper,cnt,epoch, filter
     if g_pass==True and r_pass == True and t_pass == True:  #small size gripper
         
         done = True
+
+    
+    
+    # ## Visualize Results
+    # depth_img_norm = (depth_img - depth_img.min()) / (depth_img.max() - depth_img.min())
+    # depth_img_uint8 = (depth_img_norm * 255).astype(np.uint8)
+    # refine_state_uint8 = refine_state.astype(np.uint8) * 255
+
+    # gripper_mask_img = np.zeros((img_size, img_size), dtype=np.uint8)
+    # # 그리퍼 마스크를 이미지에 그리기
+    # cv2.drawContours(gripper_mask_img, contours, -1, 255, -1)
+
+    # # refine_state_uint8와 gripper_mask_img를 겹쳐서 하나의 컬러 이미지로 생성
+    # combined_img = np.zeros((img_size, img_size, 3), dtype=np.uint8)
+    # combined_img[:, :, 1] = gripper_mask_img    # Green channel
+    # combined_img[:, :, 2] = refine_state_uint8  # Red channel
+
+    # # g_pass, r_pass, t_pass 값을 타이틀에 포함하여 이미지 표시
+    # fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+    # ax.imshow(combined_img)
+    # ax.set_title(f'g_pass: {g_pass}, r_pass: {r_pass}, t_pass: {t_pass}\n a: {action[0]}, w: {action[1]}')
+    # ax.axis('off')
+
+    # # 필요에 따라 이미지를 저장
+    # filename = os.path.join('/home/yeonseo/Robot_Grasping/gripper_adaptation/test', f'epoch{epoch}_{cnt}_theta{action[0]}_width{action[1]}.png')
+    # plt.savefig(filename)
+    # plt.close(fig)
+    
 
 
     return  done, g_pass, r_pass, reward 

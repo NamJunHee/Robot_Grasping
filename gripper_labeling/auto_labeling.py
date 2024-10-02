@@ -37,7 +37,7 @@ from random import randrange
 # from imageio import imread
 import shutil
 import yaml
-
+from tqdm import tqdm
 
 
 # https://stackoverflow.com/a/25558333
@@ -402,7 +402,7 @@ def task(
     ## Crop image
     #crop_size = int(np.array([grasp[2],grasp[3]]).max()) *2
     # print("w, h, theta : ", grasp[2], grasp[3], grasp[1])
-    crop_size = int(calculate_min_square_side(grasp[2], grasp[3], grasp[1])*1.5)
+    crop_size = int(calculate_min_square_side(grasp[2], grasp[3], grasp[1])*2)
     # print("crop size : ", crop_size)
     crop_img = subimage(img, center=grasp[0], theta=0, width= crop_size, height=crop_size)
     crop_depth = subimage(depth, center=grasp[0], theta=0, width= crop_size, height=crop_size)
@@ -491,18 +491,18 @@ def main():
     with open('../configs/gripper_info.yml', 'r') as file:
         gripper_data = yaml.safe_load(file)
     
-    gripper_info = gripper_data['3f_224']
+    gripper_info = gripper_data['2f_224']
     gripper = (gripper_info['width_base'], 
             gripper_info['gripper_rect'], 
             gripper_info['base'])
     
     w_resolution = 2
-    theta_resolution = 1    
+    theta_resolution = 5    
     
     ##== Make action_list (action candidate)
     x_action = [0]
     y_action = [0]
-    w_action = list(range(9,39,w_resolution))
+    w_action = list(range(gripper_info['min_width'], gripper_info['max_width'],w_resolution))
     theta_action = list(range(0,360,theta_resolution))
 
     action_list=list(product(x_action,y_action,theta_action, w_action))
@@ -532,7 +532,7 @@ def main():
         
         
     ##== Read Target Dataset
-    dataset_path = '/home/nmail/workplace/gripper_dataset/Jacquard_dataset/sum'
+    dataset_path = '/home/yeonseo/Robot_Grasping/Dataset/Jacquard_dataset/sum'
     
     grasp_files = glob.glob(os.path.join(dataset_path, '*', '*_grasps.txt'))
     grasp_files.sort()
@@ -544,8 +544,8 @@ def main():
     
     
     ##== Set Labeled Data path
-    ori_data_root = f"/home/nmail/workplace/gripper_dataset/dataset_{gripper_info['name']}_w-{w_resolution}_theta-{theta_resolution}/ori_dataset"
-    crop_data_root = f"/home/nmail/workplace/gripper_dataset/dataset_{gripper_info['name']}_w-{w_resolution}_theta-{theta_resolution}/crop_dataset"
+    ori_data_root = f"/home/yeonseo/Robot_Grasping/Dataset/dataset_{gripper_info['name']}_w-{w_resolution}_theta-{theta_resolution}/ori_dataset"
+    crop_data_root = f"/home/yeonseo/Robot_Grasping/Dataset/dataset_{gripper_info['name']}_w-{w_resolution}_theta-{theta_resolution}/crop_dataset"
     
     # Check if ori_data_root exists, if not, create it
     if not os.path.exists(ori_data_root):
@@ -566,7 +566,7 @@ def main():
     l = mp.Lock()
     ##== Labeling Loop
     with mp.Pool(workers, initializer=proc_init, initargs=(l, crop_data_root, ori_data_root, action_list, gripper, gripper_info)) as pool:
-        for idx in range(labeled_idx, len(grasp_files)):
+        for idx in tqdm(range(labeled_idx, len(grasp_files)), desc="Processing Files", unit="file"):
             print(f'----- Current time: {datetime.datetime.now()} -----', flush=True)
             print(f'index [{idx}]', flush=True)
             

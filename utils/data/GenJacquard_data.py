@@ -32,9 +32,9 @@ class GenJacquardDataset(GraspDatasetBase):
         self.img_size = img_size
         self.grasp_files = glob.glob(os.path.join(file_path, '*', '*_label.txt'))
         # for test
-        self.grasp_files = [f for f in self.grasp_files if 1 <= int(os.path.basename(os.path.dirname(f))) <= 300]
+        self.grasp_files = [f for f in self.grasp_files if 1 <= int(os.path.basename(os.path.dirname(f))) <= 100]
         self.grasp_files.sort()
-        
+
 
         self.not_none_ids = []
         for idx, file in enumerate(self.grasp_files):
@@ -82,8 +82,8 @@ class GenJacquardDataset(GraspDatasetBase):
         self.normalized_width_list = (self.width_list - self.min_w) / (self.max_w - self.min_w)
         self.normalized_angle_list = self.angle_list / 360.0
         self.grid_angle, self.grid_width = np.meshgrid(self.normalized_angle_list, self.normalized_width_list)
-        # create a gripper mask for each pair (width, angle) : coarse-to-fine prediction
-        self.gripper_masks = np.zeros((len(self.normalized_width_list), len(self.normalized_angle_list), self.img_size, self.img_size))
+        # create a gripper mask for each pair (width, angle) 
+        self.gripper_masks = np.zeros((len(self.width_list), len(self.angle_list), self.img_size, self.img_size))
         for idw in range(len(self.width_list)):
             for ida in range(len(self.angle_list)):
                 self.gripper_masks[idw, ida] = self.get_gripper_mask(width=self.width_list[idw], angle=self.angle_list[ida])
@@ -96,14 +96,18 @@ class GenJacquardDataset(GraspDatasetBase):
         grip.change_width(width)
         grip.rotate(int(angle))
         contours = grip.get_contours()
-        cv2.drawContours(gripper_mask, contours, -1, 1, -1)
+        cv2.drawContours(gripper_mask, contours, -1, 255, -1)
+        # mask_filename = f'/home/yeonseo/Robot_Grasping/gripper_adaptation/test/w{width}_a{angle}.png'
+        # cv2.imwrite(mask_filename, gripper_mask)
+        # print(f"Saved {mask_filename}")
         return gripper_mask
 
     def get_gtbb(self, idx, rot=0, zoom=1.0, normalize=True):
-        gtbbs = grasp.GraspRectangles.load_from_cropdata_file(self.grasp_files[idx], normalize=normalize)
+        gtbbs = grasp.GraspRectangles.load_from_cropdata_file(self.grasp_files[idx], normalize=False)
         # c = self.output_size // 2
         # gtbbs.rotate(rot, (c, c))
         # gtbbs.zoom(zoom, (c, c))
+        # Normalize Quality
         gtbbs[:, 2] /= max(gtbbs[:, 2])
         return gtbbs
 
@@ -188,23 +192,26 @@ class GenJacquardDataset(GraspDatasetBase):
         returned_data["scene_inputs"] = scene_inputs.astype(np.float32)
 
         if self.training:
-            nw, na = len(self.normalized_width_list), len(self.normalized_angle_list)
+            nw, na = len(self.width_list), len(self.angle_list)
             pos_mask = np.zeros((nw, na), dtype=np.bool)
 
+            # normalize X
             gt_a, gt_w, gt_q = bbs[:, 0], bbs[:, 1], bbs[:, 2]
-            mask_gt_a = (gt_a >= self.normalized_angle_list[0]) & (gt_a <= self.normalized_angle_list[-1])
-            mask_gt_w = (gt_w >= self.normalized_width_list[0]) & (gt_w <= self.normalized_width_list[-1])
+            mask_gt_a = (gt_a >= self.angle_list[0]) & (gt_a <= self.angle_list[-1])
+            mask_gt_w = (gt_w >= self.width_list[0]) & (gt_w <= self.width_list[-1])
             mask_gt = mask_gt_a & mask_gt_w
             gt_a, gt_w, gt_q = gt_a[mask_gt], gt_w[mask_gt], gt_q[mask_gt]
             #print("gt_a, gt_w, gt_q : ", gt_a, gt_w, gt_q)
 
             n_pos_samples = len(gt_a)
             if n_pos_samples > 0:
-                gt_a_in_degrees = gt_a * 360.0  # 각도는 0~360도로 변환
-                gt_w_in_units = gt_w * (self.max_w - self.min_w) + self.min_w  # 폭은 원래의 단위로 변환
+                # gt_a_in_degrees = gt_a * 360.0  # normalized angle to degree
+                # gt_w_in_units = gt_w * (self.max_w - self.min_w) + self.min_w  # normalized width to width
 
-                gt_id_a = ((gt_a_in_degrees - self.min_a) / self.angle_step).astype(np.uint8)
-                gt_id_w = ((gt_w_in_units - self.min_w) / self.width_step).astype(np.uint8)
+                # gt_id_a = ((gt_a_in_degrees - self.min_a) / self.angle_step).astype(np.uint8)
+                # gt_id_w = ((gt_w_in_units - self.min_w) / self.width_step).astype(np.uint8)
+                gt_id_a = gt_a.astype(np.uint8)
+                gt_id_w = ((gt_w - self.min_w) / self.width_step).astype(np.uint8)
                 _, unq_index = np.unique(np.stack((gt_id_a, gt_id_w), axis=1), return_index=True, axis=0)
                 n_pos_samples = len(unq_index)
 
@@ -231,7 +238,7 @@ class GenJacquardDataset(GraspDatasetBase):
                                   "weights": weights.astype(np.float32)})  # [N_samples, ]
         else:
             gripper_inputs = self.gripper_masks  # [nw, na, self.img_size, self.img_size]
-
+        
         # print(gripper_inputs.shape, labels.shape, weights.shape)
         returned_data.update({"gripper_inputs": gripper_inputs.astype(np.float32),
                               "gt_grasps": bbs.astype(np.float32),

@@ -23,7 +23,7 @@ from utils.dataset_processing import evaluation
 
 
 
-def validate(net, device, val_data, iou_threshold, epoch, gripper, img_size, valid_path):
+def validate(net, device, val_data, iou_threshold, epoch, gripper, g_width_range, angle_step, width_step, img_size, valid_path):
     """
     Run validation.
     :param net: Network
@@ -91,12 +91,11 @@ def validate(net, device, val_data, iou_threshold, epoch, gripper, img_size, val
                     # action_cp = gt_grasps[0].cpu().detach().numpy().copy()
                     action_cp = output.copy()
                     scene_data_cp = scene_data.squeeze().cpu().detach().numpy().copy()
-                    check, gp, rp, reward = evaluation.check_grasp_v2(scene_data_cp, img_size, action_cp, gripper, cnt, epoch, rate)
+                    check, gp, rp, reward = evaluation.check_grasp_v2(scene_data_cp, img_size, action_cp, gripper, g_width_range, cnt, epoch, rate)
                     re.append([check, reward])
                     re_check.append(check)
                     reward_list.append(reward)
-
-
+            
                 if re_check.count(True) > 0:
                 #     # print('re_check true')
                     dnn_s_cnt +=1
@@ -111,20 +110,6 @@ def validate(net, device, val_data, iou_threshold, epoch, gripper, img_size, val
                 results['correct'] += 1
             else:
                 results['failed'] += 1
-
-            # --- 시각화 추가 ---
-            # check_grasp_v2의 결과를 시각화하고 저장
-            # save_path = f"{valid_path}/epoch_{epoch}_batch_{batch_cnt}.png"
-            # # print('save_path', save_path)
-            # evaluation.visualize_grasp_result(
-            #     scene_data_cp, action_cp, depth_state=np.random.rand(img_size, img_size),  # 예시 depth_state
-            #     close_g=np.random.rand(img_size, img_size),  # 예시 close_g
-            #     img_size=img_size,
-            #     save_path=save_path
-            # )
-            # print(f"Batch {batch_cnt}의 시각화 결과가 {save_path}에 저장되었습니다.")
-            # --- 시각화 끝 ---
-            
             s = False
             cnt += 1
             batch_cnt += 1
@@ -172,7 +157,6 @@ def train(epoch, net, device, train_data, optimizer, scheduler):
         # print('out_pred', out_pred)
         # print('labels shape', labels.shape)
         # print('labels', labels)
-
 
         loss = F.binary_cross_entropy_with_logits(out_pred, labels, weight=weights, reduction='sum') / batch_size
 
@@ -241,6 +225,7 @@ def run():
     #==== load gripper configs ====#
     gripper_cfg = import_gripper_configs(configs['gripper_type'])
     gripper = (gripper_cfg['width_base'], gripper_cfg['gripper_rect'], gripper_cfg['base'])
+    g_width_range = [gripper_cfg['min_width'], gripper_cfg['max_width']]
     print(gripper_cfg)
     print(gripper)
     
@@ -389,7 +374,7 @@ def run():
         
         if (epoch % configs['eval_freq'] == 0) or (epoch == configs['epochs'] - 1):
             logging.info('Validating...')
-            test_results = validate(net, device, val_data, model_cfg['iou_threshold'], epoch, gripper, configs['input_size'], valid_path)
+            test_results = validate(net, device, val_data, model_cfg['iou_threshold'], epoch, gripper, g_width_range, configs['angle_step'], configs['width_step'], configs['input_size'], valid_path)
             logging.info('%d/%d = %f' % (test_results['correct'], test_results['correct'] + test_results['failed'],
                                         test_results['correct'] / (test_results['correct'] + test_results['failed'])))
 

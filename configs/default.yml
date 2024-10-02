@@ -11,7 +11,7 @@ TestName :
     ds_rotate : 0.0
     num_workers : 8
     use_depth : 1           # Use Depth image for training (1/0)
-    use_rgb : 0             # Use RGB image for training (1/0)
+    use_rgb : 1             # Use RGB image for training (1/0)
 
     # Gripper Infromation
     gripper_type : '2f_224'
@@ -42,7 +42,7 @@ TestName :
     ds_rotate : 0.0
     num_workers : 8
     use_depth : 1           # Use Depth image for training (1/0)
-    use_rgb : 0             # Use RGB image for training (1/0)
+    use_rgb : 1             # Use RGB image for training (1/0)
 
     # Gripper Infromation
     gripper_type : '2f_64'
