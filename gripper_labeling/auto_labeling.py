@@ -532,7 +532,7 @@ def main():
         
         
     ##== Read Target Dataset
-    dataset_path = '/home/yeonseo/Robot_Grasping/Dataset/Jacquard_dataset/sum'
+    dataset_path = '/mnt/sdb/yeonseo/Robot_Grasping/Dataset/Jacquard_dataset/sum'
     
     grasp_files = glob.glob(os.path.join(dataset_path, '*', '*_grasps.txt'))
     grasp_files.sort()
@@ -544,8 +544,8 @@ def main():
     
     
     ##== Set Labeled Data path
-    ori_data_root = f"/home/yeonseo/Robot_Grasping/Dataset/dataset_{gripper_info['name']}_w-{w_resolution}_theta-{theta_resolution}/ori_dataset"
-    crop_data_root = f"/home/yeonseo/Robot_Grasping/Dataset/dataset_{gripper_info['name']}_w-{w_resolution}_theta-{theta_resolution}/crop_dataset"
+    ori_data_root = f"/mnt/sdb/yeonseo/Robot_Grasping/Dataset/Custom_Dataset/dataset_{gripper_info['name']}_w-{w_resolution}_theta-{theta_resolution}/ori_dataset"
+    crop_data_root = f"/mnt/sdb/yeonseo/Robot_Grasping/Dataset/Custom_Dataset/dataset_{gripper_info['name']}_w-{w_resolution}_theta-{theta_resolution}/crop_dataset"
     
     # Check if ori_data_root exists, if not, create it
     if not os.path.exists(ori_data_root):
@@ -566,7 +566,7 @@ def main():
     l = mp.Lock()
     ##== Labeling Loop
     with mp.Pool(workers, initializer=proc_init, initargs=(l, crop_data_root, ori_data_root, action_list, gripper, gripper_info)) as pool:
-        for idx in tqdm(range(labeled_idx, len(grasp_files)), desc="Processing Files", unit="file"):
+        for idx in range(labeled_idx, len(grasp_files)):
             print(f'----- Current time: {datetime.datetime.now()} -----', flush=True)
             print(f'index [{idx}]', flush=True)
             
