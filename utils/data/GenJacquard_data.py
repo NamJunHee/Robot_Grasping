@@ -32,7 +32,7 @@ class GenJacquardDataset(GraspDatasetBase):
         self.img_size = img_size
         self.grasp_files = glob.glob(os.path.join(file_path, '*', '*_label.txt'))
         # for test
-        self.grasp_files = [f for f in self.grasp_files if 1 <= int(os.path.basename(os.path.dirname(f))) <= 100]
+        self.grasp_files = [f for f in self.grasp_files if 1 <= int(os.path.basename(os.path.dirname(f))) <= 300]
         self.grasp_files.sort()
 
 
@@ -210,7 +210,7 @@ class GenJacquardDataset(GraspDatasetBase):
 
                 # gt_id_a = ((gt_a_in_degrees - self.min_a) / self.angle_step).astype(np.uint8)
                 # gt_id_w = ((gt_w_in_units - self.min_w) / self.width_step).astype(np.uint8)
-                gt_id_a = gt_a.astype(np.uint8)
+                gt_id_a = (gt_a.astype(np.uint8)/ self.angle_step).astype(np.uint8)
                 gt_id_w = ((gt_w - self.min_w) / self.width_step).astype(np.uint8)
                 _, unq_index = np.unique(np.stack((gt_id_a, gt_id_w), axis=1), return_index=True, axis=0)
                 n_pos_samples = len(unq_index)

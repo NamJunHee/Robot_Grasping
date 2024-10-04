@@ -1,4 +1,64 @@
 TestName :
+  gripper_2f_64_w5_theta5 :
+    # Dataset
+    dataset : 'genjacquard'
+    input_size : 64
+    dataset_path : '/home/yeonseo/Robot_Grasping/Dataset/dataset_2f_64_w-5_theta-5/crop_dataset'
+    angle_step : 5         
+    width_step : 5          
+    split : 0.9
+    ds_shuffle : False
+    ds_rotate : 0.0
+    num_workers : 8
+    use_depth : 1           # Use Depth image for training (1/0)
+    use_rgb : 1             # Use RGB image for training (1/0)
+
+    # Gripper Infromation
+    gripper_type : '2f_64'
+
+    # Training
+    Model : 'GAdaNext'
+    force_cpu : 0
+    batch_size : 1
+    epochs : 200
+    batches_per_epoch : 200
+    optim : 'adam'
+    n_train_samples : 25
+
+    # Etc
+    eval_freq : 1
+
+##================================================================
+  gripper_2f_224_w5_theta5 :
+    # Dataset
+    dataset : 'genjacquard'
+    input_size : 224
+    dataset_path : '/home/yeonseo/Robot_Grasping/Dataset/dataset_2f_224_w-5_theta-5/crop_dataset'
+    angle_step : 5          
+    width_step : 5          
+    split : 0.9
+    ds_shuffle : False
+    ds_rotate : 0.0
+    num_workers : 8
+    use_depth : 1           # Use Depth image for training (1/0)
+    use_rgb : 1             # Use RGB image for training (1/0)
+
+    # Gripper Infromation
+    gripper_type : '2f_224'
+
+    # Training
+    Model : 'GAdaNext'
+    force_cpu : 0
+    batch_size : 1
+    epochs : 200
+    batches_per_epoch : 200
+    optim : 'adam'
+    n_train_samples : 25
+
+    # Etc
+    eval_freq : 1
+
+##================================================================    
   gripper_2f_224 :
     # Dataset
     dataset : 'genjacquard'
@@ -30,6 +90,7 @@ TestName :
     # Etc
     eval_freq : 1
 
+##================================================================
   gripper_2f_64 :
     # Dataset
     dataset : 'genjacquard'
@@ -61,7 +122,7 @@ TestName :
     # Etc
     eval_freq : 1
   
-
+##================================================================
   gripper_2f_64_prev :
     # Dataset
     dataset : 'genjacquard'
@@ -91,6 +152,8 @@ TestName :
     # Etc
     eval_freq : 1
 
+
+##================================================================
   gripper_3f_64_prev :
     # Dataset
     dataset : 'genjacquard'

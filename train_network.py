@@ -91,7 +91,7 @@ def validate(net, device, val_data, iou_threshold, epoch, gripper, g_width_range
                     # action_cp = gt_grasps[0].cpu().detach().numpy().copy()
                     action_cp = output.copy()
                     scene_data_cp = scene_data.squeeze().cpu().detach().numpy().copy()
-                    check, gp, rp, reward = evaluation.check_grasp_v2(scene_data_cp, img_size, action_cp, gripper, g_width_range, cnt, epoch, rate)
+                    check, gp, rp, reward = evaluation.check_grasp_v2(scene_data_cp, img_size, action_cp, gripper, g_width_range, valid_path, cnt, epoch, rate)
                     re.append([check, reward])
                     re_check.append(check)
                     reward_list.append(reward)
