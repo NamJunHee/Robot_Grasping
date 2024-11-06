@@ -95,9 +95,9 @@ TestName :
     # Dataset
     dataset : 'genjacquard'
     input_size : 64
-    dataset_path : '/home/yeonseo/Robot_Grasping/Dataset/dataset_2f_64_w-2_theta-1/crop_dataset'
+    dataset_path : '/mnt/sdb1/junhee/Robot_Grasping/Dataset/dataset_2f_64_theta-5/crop_dataset'
     angle_step : 1          # info from "dataset_2f_224_w-2_theta-1"
-    width_step : 2          # info from "dataset_2f_224_w-2_theta-1"    
+    width_step : 1          # info from "dataset_2f_224_w-2_theta-1"    
     split : 0.9
     ds_shuffle : False
     ds_rotate : 0.0
@@ -107,8 +107,8 @@ TestName :
 
     # Gripper Infromation
     gripper_type : '2f_64'
-    min_width : 9
-    max_width : 49
+    min_width : 4
+    max_width : 60
 
     # Training
     Model : 'GAdaNext'

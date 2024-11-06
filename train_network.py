@@ -20,9 +20,6 @@ from utils.data import get_dataset
 from utils.post_process import post_process_output2, post_process_output3, regress_grasp_pose
 from utils.dataset_processing import evaluation
 
-
-
-
 def validate(net, device, val_data, iou_threshold, epoch, gripper, g_width_range, angle_step, width_step, img_size, valid_path):
     """
     Run validation.

@@ -70,7 +70,7 @@ class Gripper:
             center = np.array([rect.x * math.cos(angle) - rect.y * math.sin(angle) + self.x, rect.x * math.sin(angle) + rect.y * math.cos(angle) + self.y])
             box = [center, (rect.w, rect.h), rect.angle + self.angle]
             points = cv2.boxPoints(box)
-            box = np.int0(points)
+            box = np.int_(points)
             contours.append(box)
         else:
             for rect in self.rectangles:
@@ -78,7 +78,7 @@ class Gripper:
                 center = np.array([rect.x * math.cos(angle) - rect.y * math.sin(angle) + self.x, rect.x * math.sin(angle) + rect.y * math.cos(angle) + self.y])
                 box = [center, (rect.w, rect.h), rect.angle + self.angle]
                 points = cv2.boxPoints(box)
-                box = np.int0(points)
+                box = np.int_(points)
                 contours.append(box)
         
         # just for checking center, need to comment this part
@@ -95,7 +95,7 @@ class Gripper:
             angle = math.pi * (self.angle / 180)
             center = np.array([rect.x * math.cos(angle) - rect.y * math.sin(angle) + self.x, rect.x * math.sin(angle) + rect.y * math.cos(angle) + self.y])
             box = [center, (rect.w, rect.h), rect.angle + self.angle]
-            points = np.int0(cv2.boxPoints(box)).tolist()
+            points = np.int_(cv2.boxPoints(box)).tolist()
             for x, y in points:
                 if x < 0 or x >= self.max_x or y < 0 or y >= self.max_y:
                     all_in = False
